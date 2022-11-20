@@ -12,7 +12,7 @@ class ReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Report
-        fields = ['id', 'category', 'reason', 'website_url', 'author']
+        fields = ['id', 'category', 'reason', 'website_url', 'author',]
 
 
 class UserSerializer(serializers.ModelSerializer):

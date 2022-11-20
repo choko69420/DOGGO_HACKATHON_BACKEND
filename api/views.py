@@ -1,7 +1,7 @@
 # Create your views here.
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authtoken.models import Token
 from .models import Report, User
 from .serializers import ReportSerializer, UserSerializer, LoginSerializer, LogoutSerializer
@@ -30,13 +30,14 @@ class UserCreate(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [AllowAny]
 
     def create(self, serializer, *args, **kwargs):
         # get the user password, username, and email
         serializer = UserSerializer(data=self.request.data)
         if serializer.is_valid():
-            user = serializer.save()
+            # create the user
+            user = User.objects.create_user(**serializer.validated_data)
             token = Token.objects.create(user=user)
             json = serializer.validated_data
             json['token'] = token.key
