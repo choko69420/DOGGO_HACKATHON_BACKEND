@@ -1,11 +1,70 @@
 # Create your views here.
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, CreateAPIView
+from rest_framework.generics import ListCreateAPIView, CreateAPIView, ListAPIView
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from .models import Report, User
-from .serializers import ReportSerializer, UserSerializer, LoginSerializer, LogoutSerializer
+from .serializers import ReportSerializer, UserSerializer, LoginSerializer, LogoutSerializer, AddFriendSerializer, UserRegisterSerializer
 from rest_framework.response import Response
+from rest_framework import serializers
+
+
+class ConfirmFriendRequest(APIView):
+    def patch(self, request):
+        token = request.headers['Authorization'].split(' ')[1]
+        user = Token.objects.get(key=token).user
+        # get who the user wants to add with username
+        target = User.objects.filter(
+            username=self.request.data['username']).first()
+        # check if user is already friends
+        if target in user.friends.all():
+            raise serializers.ValidationError("Already friends")
+        # check if there is a pending request
+        if not target in user.friend_requests.all():
+            raise serializers.ValidationError(
+                "The user has not sent a friend request")
+
+        # add friend
+        user.friends.add(target)
+        # remove friend request
+        user.friend_requests.remove(target)
+        user.save()
+        return Response({'message': 'Friend request confirmed'})
+
+
+class ListCreateFriendRequests(APIView):
+    def get(self, request):
+        token = request.headers['Authorization'].split(' ')[1]
+        user = Token.objects.get(key=token).user
+
+        serializer = AddFriendSerializer(user.friend_requests, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        token = request.headers['Authorization'].split(' ')[1]
+        user = Token.objects.get(key=token).user
+
+        target = User.objects.filter(
+            username=self.request.data['username']).first()
+        # check if user is already friends
+        if target in user.friends.all():
+            raise serializers.ValidationError("Already friends")
+        # check if there is a pending request
+        if target in user.friend_requests.all():
+            raise serializers.ValidationError("Already requested")
+        # add friend request
+        user.friend_requests.add(target)
+        user.save()
+        return Response("Friend request sent")
+
+
+class ListFriends(ListAPIView):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        token = self.request.headers['Authorization'].split(' ')[1]
+        user = Token.objects.get(key=token).user
+        return user.friends.all()
 
 
 class ReportListCreate(ListCreateAPIView):
@@ -28,7 +87,7 @@ class UserCreate(CreateAPIView):
     Create a new user in the system.
     """
     queryset = User.objects.all()
-    serializer_class = UserSerializer
+    serializer_class = UserRegisterSerializer
     authentication_classes = []
     permission_classes = [AllowAny]
 

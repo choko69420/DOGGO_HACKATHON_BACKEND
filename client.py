@@ -1,13 +1,11 @@
 import requests
 
-endpoint = 'http://localhost:8000/api/'
+endpoint = 'http://localhost:8000/api/friends'
 
 json = {
-    "category": "sexism",
-    "reason": "a reason thats sexist",
-    "website_url": "https://www.google.com",
+    "username": "admin"
 }
 headers = {
-    "Authorization": "Token c04a32a7b59acfb56986f26bbf45c64c47a8590e"
+    "Authorization": "Token b68a97a1f486a2d4f40c31ed8979a056d8ab0174"
 }
-requests.post(endpoint, json=json, headers=headers)
+print(requests.get(endpoint, json=json, headers=headers).json())

@@ -18,6 +18,8 @@ class User(AbstractUser):
     score = models.IntegerField(default=0)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=254, unique=True)
+    friends = models.ManyToManyField("self", blank=True)
+    friend_requests = models.ManyToManyField("self", blank=True)
 
     def __str__(self):
         return f"{self.username} {self.email} {self.animal} {self.score}"

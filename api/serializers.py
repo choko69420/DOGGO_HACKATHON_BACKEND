@@ -12,10 +12,16 @@ class ReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Report
-        fields = ['id', 'category', 'reason', 'website_url', 'author',]
+        fields = ['id', 'category', 'reason', 'website_url', 'author', ]
 
 
 class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'animal', 'score', ]
+
+
+class UserRegisterSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(required=True,
                                    validators=[UniqueValidator(
                                        queryset=User.objects.all())]
@@ -30,6 +36,12 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'password', 'animal')
+
+
+class AddFriendSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
 
 
 class LoginSerializer(serializers.Serializer):
